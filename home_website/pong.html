@@ -1,0 +1,344 @@
+<html>
+
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+// 	This is a single line comment
+/* 	This is a multi
+	line comment */
+	
+//VikingPong
+//By Adison Emerick
+
+//2/7/19
+//Change background color to FineBrick 
+var canvas;
+var canvasContext;
+var ballX = 50;
+var ballY = 50;
+var ballSpeedX = 10;
+var ballSpeedY = 4;
+
+var player1Score = 0;
+var player2Score = 0;
+const WINNING_SCORE = 3;
+
+var showingWinScreen = false;
+var startingScreen = true;
+
+var paddle1Y = 250;
+var paddle2Y = 250;
+const PADDLE_THICKNESS = 10;
+const PADDLE_HEIGHT = 100;
+
+var PADDLE_HEIGHTp1 = 120;
+var computerTime = 2;
+
+var colorBall = 'white'
+
+var xyz = 50;
+
+function calculateMousePos(evt) {
+	var rect = canvas.getBoundingClientRect();
+	var root = document.documentElement;
+	var mouseX = evt.clientX - rect.left - root.scrollLeft;
+	var mouseY = evt.clientY - rect.top - root.scrollTop;
+	return {
+		x:mouseX,
+		y:mouseY
+	};
+}
+
+function handleMouseClick(evt) {
+	if(startingScreen) {
+		startingScreen = false;
+	}
+	if(showingWinScreen) {
+		player1Score = 0;
+		player2Score = 0;
+		PADDLE_HEIGHTp1 = 120;
+		xyz = 50;
+		showingWinScreen = false;
+	}
+}
+
+window.onload = function() {
+	canvas = document.getElementById('gameCanvas');
+	canvasContext = canvas.getContext('2d');
+		
+		var framesPerSecond = 50;
+		setInterval(function() {
+				moveEverything();
+				drawEverything();	
+				computerMovement();
+			}, 1000/framesPerSecond);
+
+		canvas.addEventListener('mousedown', handleMouseClick);
+
+		canvas.addEventListener('mousemove',
+			function(evt) {
+				var mousePos = calculateMousePos(evt);
+				paddle1Y = mousePos.y - (PADDLE_HEIGHTp1/2);
+			});
+	
+}
+
+function ballReset() {
+	if(player1Score >= WINNING_SCORE || player2Score >= WINNING_SCORE) {
+
+		showingWinScreen = true;
+	}
+	
+	ballSpeedX = -ballSpeedX;
+	ballX = canvas.width/2;
+	ballY = canvas.height/2;
+	ballSpeedY = 4;
+	
+	var randomNum = Math.floor((Math.random() * 8) + 1);
+	if (randomNum==1)		//Makes the ball a different color after it's scored
+	{
+		colorBall='green';
+	}
+	else if (randomNum==2)
+	{
+		colorBall='red';
+	}
+	else if (randomNum==3)
+	{
+		colorBall='pink';
+	}
+	else if (randomNum==4)
+	{
+		colorBall='white';
+	}
+	else if (randomNum==5)
+	{
+		colorBall='yellow';
+	}
+	else if (randomNum==6)
+	{
+		colorBall='purple';
+	}
+	else if (randomNum==7)
+	{
+		colorBall='blue';
+	}
+	else if (randomNum==8)
+	{
+		colorBall='lime';
+	}
+}
+
+
+function computerMovement() {
+	
+	var paddle2YCenter = paddle2Y + (PADDLE_HEIGHT/2);
+	if (ballX > 200)
+	{
+		var paddle2YCenter = paddle2Y + (PADDLE_HEIGHT/2);
+		if(paddle2YCenter < ballY - 35) {
+			paddle2Y = paddle2Y + 6;
+		} else if(paddle2YCenter > ballY + 35) {
+			paddle2Y = paddle2Y - 6;
+		}
+	}
+}
+
+function moveEverything() {
+	if (startingScreen) {
+		return;
+	}
+	if(showingWinScreen) {
+		return;
+	}
+	
+	ballX = ballX + ballSpeedX;
+	ballY = ballY + ballSpeedY;
+	
+	if(ballX < 20) {
+		if(ballY > paddle1Y && ballY < paddle1Y+PADDLE_HEIGHTp1) 
+		{
+			ballSpeedX = -ballSpeedX;
+
+			var deltaY = ballY-(paddle1Y+PADDLE_HEIGHTp1/2);
+			ballSpeedY = deltaY * 0.40;
+		}
+			else if (ballX < 0)
+		{
+			player2Score++; // must be BEFORE ballReset() 
+			ballReset();
+		}
+	}
+
+	if(ballX > canvas.width - 20) {
+		if(ballY > paddle2Y && ballY < paddle2Y+PADDLE_HEIGHT) 
+		{
+			ballSpeedX = -ballSpeedX;
+
+			var deltaY = ballY-(paddle2Y+PADDLE_HEIGHT/2);
+			ballSpeedY = deltaY * 0.40;
+		} 
+		else if (ballX > canvas.width) 
+		{
+			player1Score++; // must be BEFORE ballReset()
+			PADDLE_HEIGHTp1 -= 20;	
+			ballReset();
+		}
+	}
+	
+	if(ballY < 0) {
+		ballSpeedY = -ballSpeedY;
+	}
+	if(ballY > canvas.height) {
+		ballSpeedY = -ballSpeedY;
+	}
+	
+}
+
+function drawNet() { //Made net different color and better
+	
+	for(var i=5;i<canvas.height;i+=30) 	{
+		colorRect(canvas.width/2-2,i,4,20,'#FFD700');
+		}
+	for(var w=5;w<canvas.width;w+=30)	//This is for the top horizontal "net"
+		{
+		colorRect(w,0,10,5,'#FFD700');
+		}
+	for(var w=5;w<canvas.width;w+=30)	//This is for the bottom horizontal "net"
+		{
+		colorRect(w,595,10,600,'#FFD700');
+		}
+		
+		canvasContext.font = "15px Comic Sans MS";
+		canvasContext.fillText("Viking",94,44);
+		canvasContext.fillText("Grizzly",691,44);
+		//This will be the box around the left score
+	for(var s=5;s<canvas.width;s+=30)	//This is the left vertical line
+		{
+		colorRect(93,50,3,60,'#8B0000');
+		}
+	for(var s=5;s<canvas.width;s+=30)	//This is the right vertical line
+		{
+		colorRect(135,50,3,60,'#8B0000');
+		}
+	for(var s=93;s<105;s+=1)			//This is for the top horizontal line
+		{
+		colorRect(s,48,34,2,'#8B0000');
+		}
+	for(var s=93;s<105;s+=1)			//This is for the bottom horizontal line
+		{
+		colorRect(s,110,34,2,'#8B0000');
+		}
+	
+		//This will be the box around the left score
+	for(var s=5;s<canvas.width;s+=30)	//This is for the left vertical line
+		{
+		colorRect(693,50,3,60,'#8B0000'); 
+		}
+	for(var s=5;s<canvas.width;s+=30)	//This is the right vertical line
+		{
+		colorRect(735,50,3,60,'#8B0000');
+		}
+	for(var s=693;s<705;s+=1)			//This is for the top horizontal line
+		{
+		colorRect(s,48,34,2,'#8B0000');
+		}
+	for(var s=693;s<705;s+=1)			//This is for the bottom horizontal line
+		{
+		colorRect(s,110,34,2,'#8B0000');
+		}
+	
+	canvasContext.fillStyle = '#FF8C00';
+	canvasContext.font  = "50px Comic Sans Ms"; //This is how to increase the font size and change the font family
+	
+	canvasContext.fillText(player1Score, 100, 100);
+	canvasContext.fillText(player2Score, canvas.width-100, 100);
+}
+
+function drawEverything() {
+	// next line blanks out the screen with FineBrick
+	colorRect(0,0,canvas.width,canvas.height,'#B22222');
+	
+	if(startingScreen) 
+	{
+		canvasContext.fillStyle = '#FFD700';
+		canvasContext.font = "70px Comic Sans MS"; 
+		canvasContext.fillText("PONG THE PADDLE", 80, 200);
+		canvasContext.font = "30px comic sans MS";
+		canvasContext.fillText("Welcome Viking, lets see if you have school pride and",30, 350);
+		canvasContext.fillText("beat the nasty McMinville Grizzly",150, 420);
+		return;
+	}
+
+	
+	if(showingWinScreen) 
+	{
+		canvasContext.fillStyle = '#FFD700';
+		if(player1Score >= WINNING_SCORE) {
+			canvasContext.font = "70px Comic Sans MS"; 
+			canvasContext.fillText("Great Job Viking!", 120, 200);
+			canvasContext.font = "30px comic sans MS";
+			canvasContext.fillText("You beat the nasty Grizzlies!", 190, 400);
+		} else if(player2Score >= WINNING_SCORE) {
+			canvasContext.font = "70px Comic Sans MS";
+			canvasContext.fillText("McMinville Won", 150, 200);
+			canvasContext.font = "30px comic sans MS";
+			canvasContext.fillText("Disappointed, hope next game goes better", 100, 400);
+		}
+		return;
+	}
+
+	drawNet();
+
+	// this is left player paddle and is gold color
+	colorRect(0,paddle1Y,PADDLE_THICKNESS,PADDLE_HEIGHTp1,'#FFD700');
+
+	// this is right computer paddle and is gold color
+	colorRect(canvas.width-PADDLE_THICKNESS,paddle2Y,PADDLE_THICKNESS,PADDLE_HEIGHT,'#FFD700');
+
+	// next line draws the ball
+	colorCircle(ballX, ballY, 10, colorBall) 
+	
+	if (player1Score == WINNING_SCORE - 1)
+	{
+		fontIncrease();	
+	}
+	else if (player2Score == WINNING_SCORE - 1)
+	{
+		fontIncrease();
+	}
+	
+}
+
+function fontIncrease() {
+		var fontSize = "px Comic Sans MS"; //This is how to increase the font size and change the font family 
+		if (xyz < 80)
+		{
+			xyz += .5;
+		}
+		else 
+		{
+			xyz = 80;
+		}
+		var z = xyz.toString();
+		fontSize = z + fontSize ;
+		canvasContext.fillStyle = '#FF8C00';
+		canvasContext.font = fontSize; 
+		canvasContext.fillText("GAMEPOINT", 175, 300);
+}
+
+function colorCircle(centerX, centerY, radius, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.beginPath();
+	canvasContext.arc(centerX, centerY, radius, 0,Math.PI*2,true);
+	canvasContext.fill();
+}
+
+function colorRect(leftX,topY, width,height, drawColor) {
+	canvasContext.fillStyle = drawColor;
+	canvasContext.fillRect(leftX,topY, width,height);
+}
+
+</script>
+
+</html>

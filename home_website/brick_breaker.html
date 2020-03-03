@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<audio controls> 
+	<source src="gameMusic.mp3" type="audio/mp3" autoplay>
+</audio>
+
+<canvas id="myCanvas" width="700" height="500"></canvas>
+
+<script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var ballRadius = 10;
+var ballX = canvas.width/2; 
+var ballY = 5; // canvas.height-30
+var dx = 2;
+var dy = -2;
+
+var flag = 0;
+
+
+var paddleHeight = 10;
+var paddleWidth = 75;
+var paddleX = (canvas.width-paddleWidth)/2;
+var rightPressed = false;
+var leftPressed = false;
+
+var brickRowCount = 6; //3
+var brickColumnCount = 5; //3
+var brickWidth = 100; // 180
+var brickHeight = 50;	// 100
+var brickPadding = 10;	//10
+var brickOffsetTop = 70;	//60
+var brickOffsetLeft = 25;	//70	
+
+var score = 0;
+var lives = 5;
+var levelNumber = 1;
+
+var colorBall = 'white'
+var startingScreen = true;
+
+var bricks = [];
+for(var c=0; c<brickColumnCount; c++) {
+  bricks[c] = [];
+  for(var r=0; r<brickRowCount; r++) {
+    bricks[c][r] = { ballX: 0, ballY: 0, status: 2 };
+  }
+}
+canvas.addEventListener('mousedown', handleMouseClick);	
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+
+function mouseMoveHandler(e) {
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth/2;
+    }
+}
+function handleMouseClick(evt) {
+	if(startingScreen) {
+		startingScreen = false;
+	}
+}
+function keyDownHandler(e) {
+  if(e.keyCode == 39) {
+    rightPressed = true;
+  }
+  else if(e.keyCode == 37) {
+    leftPressed = true;
+  }
+}
+function keyUpHandler(e) {
+  if(e.keyCode == 39) {
+    rightPressed = false;
+  }
+  else if(e.keyCode == 37) {
+    leftPressed = false;
+  }
+}
+
+
+function collisionDetection() {
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      var b = bricks[c][r];
+      if(b.status >= 1) {
+        if(ballX > b.ballX && ballX < b.ballX+brickWidth && ballY > b.ballY && ballY < b.ballY+brickHeight) {
+          dy = -dy;
+          b.status = b.status - 1;
+          score++;
+          if(score == 2*brickRowCount*brickColumnCount) {
+            alert("YOU WIN, CONGRATS!");
+            document.location.reload();
+          }
+        }
+      }
+    }
+  }
+}
+
+function drawScore() {
+    ctx.font = "20px georgia";
+    ctx.fillStyle = "white";
+    ctx.fillText("Score: "+score, 8, 23);
+}
+function drawScoreBox() {
+	for(var s=0;s<80;s+=5)	//This is for the left vertical line
+		{
+		colorRect(0,0,3,33,'#FFD700'); 
+		}
+	for(var s=1;s<canvas.width;s+=5)	//This is the right vertical line
+		{
+		colorRect(92,0,3,33,'#FFD700');
+		}
+	for(var s=1;s<60;s+=1)			//This is for the top horizontal line
+		{
+		colorRect(s,0,34,3,'#FFD700');
+		}
+	for(var s=1;s<60;s+=1)			//This is for the bottom horizontal line
+		{
+		colorRect(s,30,34,3,'#FFD700');
+		}
+}
+function drawLives() {
+    ctx.font = "20px georgia";
+    ctx.fillStyle = "white";
+    ctx.fillText("Lives: "+lives, canvas.width-75, 23);
+}
+function drawBoxLives() {
+	for(var s=1;s<canvas.width;s+=5)	//This is for the left vertical line
+		{
+		colorRect(canvas.width-80,0,3,30,'#FFD700'); 
+		}
+	for(var s=1;s<canvas.width;s+=5)	//This is the right vertical line
+		{
+		colorRect(canvas.width-3,0,3,30,'#FFD700');
+		}
+	for(var s=canvas.width-80;s<canvas.width;s+=1)			//This is for the top horizontal line
+		{
+		colorRect(s,0,34,3,'#FFD700');
+		}
+	for(var s=canvas.width-80;s<canvas.width;s+=1)			//This is for the bottom horizontal line
+		{
+		colorRect(s,30,34,3,'#FFD700');
+		}
+}
+function drawLevel() {
+	ctx.font = "20px georgia";
+    ctx.fillStyle = "white";
+    ctx.fillText("Level: "+levelNumber, canvas.width/2 -25, 23);
+}
+function drawLevelBox() {
+	for(var s=1;s<canvas.width;s+=5)	//This is for the left vertical line
+		{
+		colorRect(canvas.width/2 - 30,0,3,30,'#FFD700'); 
+		}
+	for(var s=1;s<canvas.width;s+=5)	//This is the right vertical line
+		{
+		colorRect(canvas.width/2 + 45,0,3,30,'#FFD700');
+		}
+	for(var s=canvas.width/2 - 30;s<canvas.width/2 + 15;s+=1)			//This is for the top horizontal line
+		{
+		colorRect(s,0,34,3,'#FFD700');
+		}
+	for(var s=canvas.width/2 - 30;s<canvas.width/2 + 15;s+=1)			//This is for the bottom horizontal line
+		{
+		colorRect(s,30,34,3,'#FFD700');
+		}
+}
+function drawNet() {
+	for(var w=102;w<canvas.width/2 -30;w+=20)	//This is for the left "net"
+		{
+		colorRect(w,15,10,5,'#FFD700');
+		}
+	for(var w=canvas.width/2 + 53;w<canvas.width -80 ;w+=20)	//This is for the bottom horizontal "net"
+		{
+		colorRect(w,15,10,5,'#FFD700');
+		}
+		
+}
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = colorBall;
+  ctx.fill();
+  ctx.closePath();
+}
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#FFD700";
+  ctx.fill();
+  ctx.closePath();
+}
+function drawBricks() {
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      if(bricks[c][r].status >= 1) {
+        var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+        var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+        bricks[c][r].ballX = brickX;
+        bricks[c][r].ballY = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+       if (bricks[c][r].status == 2)
+		{
+			ctx.fillStyle = "#00FF00";
+		}
+		else if (bricks[c][r].status == 1)
+		{
+			ctx.fillStyle = "#660099";
+		}
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+function ballReset() {
+	ballX = canvas.width/2;
+	ballY = canvas.height/2;
+	dx = 0;
+	dy = 2;
+	paddleX = (canvas.width-paddleWidth)/2;
+	var randomNum = Math.floor((Math.random() * 8) + 1);
+	if (randomNum==1)		//Makes the ball a different color after it's scored
+	{
+		colorBall='green';
+	}
+	else if (randomNum==2)
+	{
+		colorBall='red';
+	}
+	else if (randomNum==3)
+	{
+		colorBall='pink';
+	}
+	else if (randomNum==4)
+	{
+		colorBall='white';
+	}
+	else if (randomNum==5)
+	{
+		colorBall='yellow';
+	}
+	else if (randomNum==6)
+	{
+		colorBall='purple';
+	}
+	else if (randomNum==7)
+	{
+		colorBall='blue';
+	}
+	else if (randomNum==8)
+	{
+		colorBall='lime';
+	}
+}
+
+function moveEverything() {
+	if (flag == 0) //gives a buffer before the game starts 
+	{
+		dy = 1;
+		dx = 0;
+		ballY = ballY + dy;
+		if (ballY == 480)
+		{
+			flag ++;
+			dy = 2;
+			
+		}
+	}
+	if (flag == 1)
+	{
+		ballX = dx + ballX;
+		ballY = dy + ballY;
+		
+		if(ballX + dx > canvas.width-ballRadius || ballX + dx < ballRadius) 
+		{
+			dx = -dx;
+		}
+		if(ballY + dy < ballRadius)
+		{
+			dy = -dy;
+		}
+		else if(ballY + dy > canvas.height-ballRadius)
+		{
+			if(ballX > paddleX && ballX < paddleX + paddleWidth) 
+			{
+				dy = -dy;
+				var deltaX = ballX-(paddleX +40);
+				dx = deltaX * 0.10;
+			}
+			else 
+			{
+				lives--;
+				if(!lives) 
+				{
+					alert("GAME OVER! Try again!");
+					document.location.reload();
+				}
+				else 
+				{
+				ballReset();
+				}
+			}
+		}
+	}
+}
+function colorRect(leftX,topY, width,height, drawColor) {
+	ctx.fillStyle = drawColor;
+	ctx.fillRect(leftX,topY, width,height);
+}
+function draw() {
+	colorRect(0, 0, canvas.width, canvas.height,'black');
+	drawBricks();
+	drawBall();
+	drawPaddle();
+	collisionDetection();
+	drawScore();
+	drawLives();
+	drawLevel();
+	moveEverything();
+	drawBoxLives();
+	drawLevelBox();
+	drawScoreBox();
+	drawNet();
+  
+ /* if(startingScreen) 
+	{
+		ctx.fillStyle = '#FFD700';
+		ctx.font = "70px Comic Sans MS"; 
+		ctx.fillText("PONG THE PADDLE", 80, 200);
+		ctx.font = "30px comic sans MS";
+		ctx.fillText("Welcome Viking, lets see if you have school pride and",30, 350);
+		ctx.fillText("beat the nasty McMinville Grizzly",150, 420);
+		return;
+	}
+*/
+
+  if(rightPressed && paddleX < canvas.width-paddleWidth) {
+    paddleX += 7;
+  }
+  else if(leftPressed && paddleX > 0) {
+    paddleX -= 7;
+  }
+
+  ballX += dx;
+  ballY += dy;
+  
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+</body>
+</html>
